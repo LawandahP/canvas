@@ -4,8 +4,8 @@ import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { throttle } from 'lodash'; // Ensure lodash is installed
 import map from "./assets/image.png"
 const App = () => {
-  const canvasSize = 54; // in centimeters
-  const boxSize = 0.1; // in centimeters
+  const canvasSize = 52; // in centimeters
+  const boxSize = 0.5; // in centimeters
   const numBoxes = Math.floor(canvasSize / boxSize);
 
   // Using a Set to track selected cells for more efficient updates
@@ -19,6 +19,30 @@ const App = () => {
   // useMemo to avoid recalculating grid cells unless numBoxes changes
   const gridCells = useMemo(() => Array.from({ length: numBoxes * numBoxes }), [numBoxes]);
 
+
+  // calculate the corners of the selected area
+  const calculateCorners = (start, end) => {
+    const startRow = Math.floor(start / numBoxes);
+    const startCol = start % numBoxes;
+    const endRow = Math.floor(end / numBoxes);
+    const endCol = end % numBoxes;
+
+    const topLeft = Math.min(startRow, endRow) * numBoxes + Math.min(startCol, endCol);
+    const topRight = Math.min(startRow, endRow) * numBoxes + Math.max(startCol, endCol);
+    const bottomLeft = Math.max(startRow, endRow) * numBoxes + Math.min(startCol, endCol);
+    const bottomRight = Math.max(startRow, endRow) * numBoxes + Math.max(startCol, endCol);
+
+    return { topLeft, topRight, bottomLeft, bottomRight };
+  };
+
+  // State to track the color of each selected cell
+  const [cellColors, setCellColors] = useState({});
+
+  // Function to generate a random color
+  const getRandomColor = () => {
+    return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+  };
+
   const toggleCellSelection = useCallback(() => {
     setSelectedCells((prevSelectedCells) => {
       const newSelection = new Set(prevSelectedCells);
@@ -30,22 +54,34 @@ const App = () => {
       const endRow = Math.floor(end / numBoxes);
       const endCol = end % numBoxes;
 
+      const newCellColors = { ...cellColors };
+      
+      // Get a random color for the new selection
+      const selectionColor = getRandomColor(); 
+
       for (let i = Math.min(startRow, endRow); i <= Math.max(startRow, endRow); i++) {
         for (let j = Math.min(startCol, endCol); j <= Math.max(startCol, endCol); j++) {
           const cellIndex = i * numBoxes + j;
           if (newSelection.has(cellIndex)) {
-            newSelection.delete(cellIndex); // Unselect if already selected
+            newSelection.delete(cellIndex);
+            delete newCellColors[cellIndex]; // Remove color when unselected
           } else {
-            newSelection.add(cellIndex); // Select if not already selected
+            newSelection.add(cellIndex);
+            newCellColors[cellIndex] = selectionColor; // Assign color when selected
           }
         }
       }
 
+      setCellColors(newCellColors);
       return newSelection;
     });
+
+    // Calculate and log the corners of the selected area
+    const corners = calculateCorners(startCellIndexRef.current, endCellIndexRef.current);
+    console.log('Corners:', corners);
     // After selection, clear the highlighted cells
     setHighlightedCells(new Set());
-  }, [numBoxes]);
+  }, [numBoxes, cellColors]);
 
   const updateHighlightedCells = useCallback((cellIndex) => {
     const newHighlightedCells = new Set();
@@ -94,36 +130,47 @@ const App = () => {
     gridTemplateRows: `repeat(${numBoxes}, ${boxSize}cm)`,
   }), [numBoxes, boxSize]);
 
+  const canvasStyle = useMemo(() => ({
+    position: 'relative',
+    width: `${canvasSize}cm`, // Set the width of the canvas
+    height: `${canvasSize}cm`, // Set the height of the canvas
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }), [canvasSize]);
+
+  const imageStyle = {
+    position: 'absolute',
+    maxWidth: '100%',
+    maxHeight: '100%',
+    border: "1px solid #000000",
+    opacity: 0.8 // Set the desired opacity for the image
+  };
+
   return (
 
-    <div style={{ position: 'relative' }}>
-      <img
-        src={map} // Replace with the path to your image
-        alt="Background"
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          opacity: 0.8 // Set the desired opacity for the image
-        }}
-      />
-      <div
-        className="grid"
-        style={gridStyle}
-        onMouseUp={handleMouseUp}
-      >
-        {gridCells.map((_, index) => (
-          <div
-            key={index}
-            className={`box ${selectedCells.has(index) ? 'selected' : ''} ${highlightedCells.has(index) ? 'highlighted' : ''}`}
-            onMouseDown={() => handleMouseDown(index)}
-            onMouseEnter={() => throttledMouseEnter(index)}
-          />
-        ))}
-      </div>
+    <div style={canvasStyle}>
+    <img
+      src={map}
+      alt="Background"
+      style={imageStyle}
+    />
+    <div
+      className="grid"
+      style={gridStyle}
+      onMouseUp={handleMouseUp}
+    >
+      {gridCells.map((_, index) => (
+        <div
+          key={index}
+          className={`box ${selectedCells.has(index) ? 'selected' : ''} ${highlightedCells.has(index) ? 'highlighted' : ''}`}
+          style={{ backgroundColor: cellColors[index] }} // Apply the color
+          onMouseDown={() => handleMouseDown(index)}
+          onMouseEnter={() => throttledMouseEnter(index)}
+        />
+      ))}
     </div>
+  </div>
   );
 };
 
