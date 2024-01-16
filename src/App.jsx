@@ -141,10 +141,12 @@ const App = () => {
 
   const imageStyle = {
     position: 'absolute',
-    maxWidth: '100%',
-    maxHeight: '100%',
+    width: `${canvasSize}cm`, 
+    height: `${canvasSize}cm`, 
+    left: '0',
+    bottom: '0',
     border: "3px solid #000000",
-    opacity: 0.8 // Set the desired opacity for the image
+    opacity: 0.8
   };
 
   return (
