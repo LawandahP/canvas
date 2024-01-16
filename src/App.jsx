@@ -55,7 +55,7 @@ const App = () => {
       const endCol = end % numBoxes;
 
       const newCellColors = { ...cellColors };
-      
+
       // Get a random color for the new selection
       const selectionColor = getRandomColor(); 
 
@@ -143,7 +143,7 @@ const App = () => {
     position: 'absolute',
     maxWidth: '100%',
     maxHeight: '100%',
-    border: "1px solid #000000",
+    border: "3px solid #000000",
     opacity: 0.8 // Set the desired opacity for the image
   };
 
