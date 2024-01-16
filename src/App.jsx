@@ -3,9 +3,11 @@
 import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { throttle } from 'lodash'; // Ensure lodash is installed
 import map from "./assets/image.png"
+import { ModalComponent } from './Modal';
+
 const App = () => {
   const canvasSize = 52; // in centimeters
-  const boxSize = 0.5; // in centimeters
+  const boxSize = 0.4; // in centimeters
   const numBoxes = Math.floor(canvasSize / boxSize);
 
   const [currentColor, setCurrentColor] = useState('#FF0000'); // Default color red
@@ -17,6 +19,11 @@ const App = () => {
   const [isDragging, setIsDragging] = useState(false);
   const startCellIndexRef = useRef(null);
   const endCellIndexRef = useRef(null);
+
+  // Details inside modal
+  const [showModal, setShowModal] = useState(false);
+  const [standNumber, setStandNumber] = useState('');
+  const [coordinates, setCoordinates] = useState({});
 
   // useMemo to avoid recalculating grid cells unless numBoxes changes
   const gridCells = useMemo(() => Array.from({ length: numBoxes * numBoxes }), [numBoxes]);
@@ -65,8 +72,16 @@ const App = () => {
     // Calculate and log the corners of the selected area
     const corners = calculateCorners(startCellIndexRef.current, endCellIndexRef.current);
     console.log('Corners:', corners);
+    console.log(highlightedCells)
     // After selection, clear the highlighted cells
     setHighlightedCells(new Set());
+
+    // Update the state variables
+    setStandNumber(''); // Reset the stand number
+    setCoordinates(calculateCorners(startCellIndexRef.current, endCellIndexRef.current));
+
+    // Open the modal after selection
+    setShowModal(true);
   }, [numBoxes, currentColor]);
 
   const updateHighlightedCells = useCallback((cellIndex) => {
@@ -133,6 +148,28 @@ const App = () => {
     opacity: 0.8 // Set the desired opacity for the image
   };
 
+  const scaleFactor = (canvasSize / 520) * (boxSize / 1);
+
+  // Calculate the actual coordinates based on the given coordinates and the scale factor
+  const topLeft = { x: 10 * scaleFactor, y: 510 * scaleFactor };
+  const topRight = { x: 510 * scaleFactor, y: 510 * scaleFactor };
+  const bottomLeft = { x: 10 * scaleFactor, y: 10 * scaleFactor };
+  const bottomRight = { x: 510 * scaleFactor, y: 10 * scaleFactor };
+
+  // // Calculate the width and height of the div based on the coordinates
+  const divWidth = Math.abs(topRight.x - topLeft.x);
+  const divHeight = Math.abs(bottomLeft.y - topLeft.y);
+
+  // // Calculate the position of the div based on the coordinates
+  // const divPosition = { left: topLeft.x, top: topLeft.y };
+  const canvasCenter = { x: canvasSize / 2, y: canvasSize / 2 };
+
+  // Adjust the position of the div to center it in the canvas
+  const divPosition = { 
+    left: canvasCenter.x - divWidth / 2, 
+    top: canvasCenter.y - divHeight / 2 
+  };
+
   return (
 
     <>
@@ -158,11 +195,20 @@ const App = () => {
     
       <div style={canvasStyle}>
         {/* Color picker to select the color */}
-        <img
-          src={map}
-          alt="Background"
-          style={imageStyle}
-        />
+        <div style={{ 
+            position: 'absolute', 
+            left: `${divPosition.left}cm`, 
+            top: `${divPosition.top}cm`, 
+            width: `${divWidth}cm`, 
+            height: `${divHeight}cm`,
+            zIndex: -1 // To place it beneath the grid
+          }}>
+          <img
+            src={map}
+            alt="Background"
+            style={imageStyle}
+          />
+        </div>
         <div
           className="grid"
           style={gridStyle}
@@ -183,6 +229,13 @@ const App = () => {
           })}
         </div>
       </div>
+      <ModalComponent 
+        showModal={showModal} 
+        handleClose={() => setShowModal(false)} 
+        standNumber={standNumber} 
+        setStandNumber={setStandNumber} 
+        coordinates={coordinates} 
+      />
     </>
   );
 };
