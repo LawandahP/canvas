@@ -1,10 +1,10 @@
 import { useState, useMemo, useEffect } from 'react';
-import map from "./assets/image.png"
+import map from "./assets/Updated_Venue_Map_Aligned_50_x_50_cm.svg"
 import { ModalComponent } from './Modal'
 
 const Canvas = () => {
   const canvasSize = 52; // in centimeters
-  const boxSize = 0.4; // in centimeters
+  const boxSize = 0.1; // in centimeters
   const numBoxes = canvasSize / boxSize; // Number of boxes per side
 
   const [cellsSelected, setSelectedCells] = useState([]);
@@ -16,13 +16,12 @@ const Canvas = () => {
   const [currentSelection, setCurrentSelection] = useState(null)
 
   const [showModal, setShowModal] = useState(false);
-  const [standNumber, setStandNumber] = useState('');
   const [coordinates, setCoordinates] = useState([]);
   const [selectionColors, setSelectionColors] = useState([]);
   
   const getCellCoords = (index) => ({
     x: index % numBoxes,
-    y: Math.floor(index / numBoxes),
+    y: Math.floor(index / numBoxes) + 1,
   });
 
   const handleMouseDown = (cellIndex) => {
@@ -128,7 +127,7 @@ const Canvas = () => {
     });
   };
 
-  const gridCells = Array.from({ length: numBoxes * numBoxes }, (_, index) => index);
+  const gridCells = Array.from({ length: numBoxes * numBoxes }, (_, index) => index + 1);
 
     const canvasStyle = useMemo(() => ({
     position: 'relative',
@@ -194,13 +193,12 @@ const Canvas = () => {
         <div style={canvasStyle}>
             <div style={{ 
                 position: 'absolute', 
-                left: `${boxSize}cm`, 
-                top: `${boxSize}cm`, 
-                width: `${canvasSize - boxSize * 2}cm`, 
-                height: `${canvasSize - boxSize * 2}cm`,
-                // border: "5px solid #000000",
+                left: `${boxSize * 10}cm`, 
+                top: `${boxSize * 10}cm`, 
+                width: `${canvasSize - boxSize * 20}cm`, 
+                height: `${canvasSize - boxSize * 20}cm`,
                 zIndex: -1 // To place it beneath the grid
-            }}>
+                }}>
                 <img
                     src={map}
                     alt="Background"
@@ -247,8 +245,6 @@ const Canvas = () => {
         <ModalComponent 
             showModal={showModal} 
             handleClose={() => setShowModal(false)} 
-            standNumber={standNumber} 
-            setStandNumber={setStandNumber} 
             coordinates={coordinates} 
             selectedCells={cellsSelected}
             clearSelectionByCells={clearSelectionByCells}
