@@ -1,10 +1,12 @@
 import { useState, useMemo, useEffect } from 'react';
 import map from "./assets/Updated_Venue_Map_Aligned_50_x_50_cm.svg"
 import { ModalComponent } from './Modal'
+import Button from 'react-bootstrap/Button';
+import axios from 'axios'
 
 const Canvas = () => {
   const canvasSize = 52; // in centimeters
-  const boxSize = 0.1; // in centimeters
+  const boxSize = 1; // in centimeters
   const numBoxes = canvasSize / boxSize; // Number of boxes per side
 
   const [cellsSelected, setSelectedCells] = useState([]);
@@ -21,8 +23,10 @@ const Canvas = () => {
   
   const getCellCoords = (index) => ({
     x: index % numBoxes,
-    y: Math.floor(index / numBoxes) + 1,
+    y: numBoxes - Math.floor(index / numBoxes) - 1,
   });
+
+  const selectedCellCoordinates = cellsSelected.map(getCellCoords);
 
   const handleMouseDown = (cellIndex) => {
     setIsDragging(true);
@@ -40,16 +44,18 @@ const Canvas = () => {
       setEndCell(cellIndex);
       setSelections(prevSelections => {
         const newSelections = [...prevSelections];
-        const currentSel = newSelections[currentSelection];
+        const currentSel = new Set(newSelections[currentSelection]);
         const startCoords = getCellCoords(startCell);
         const endCoords = getCellCoords(cellIndex);
         const minX = Math.min(startCoords.x, endCoords.x);
         const maxX = Math.max(startCoords.x, endCoords.x);
+        // Adjust for the inverted y-axis due to the origin being at the bottom left
         const minY = Math.min(startCoords.y, endCoords.y);
         const maxY = Math.max(startCoords.y, endCoords.y);
         for (let x = minX; x <= maxX; x++) {
           for (let y = minY; y <= maxY; y++) {
-            currentSel.add(y * numBoxes + x);
+            // Adjust the index calculation for the inverted Y-axis
+            currentSel.add((numBoxes - y - 1) * numBoxes + x);
           }
         }
         newSelections[currentSelection] = currentSel;
@@ -84,6 +90,7 @@ const Canvas = () => {
       const bottomLeft = [bottomLeftCoords.x, bottomLeftCoords.y]
       const bottomRight = [bottomRightCoords.x, bottomRightCoords.y];
 
+      console.log("Selections", selections)
       console.log(`Selection coordinates: 
         topLeft: ${topLeft},
         topRight: ${topRight}
@@ -127,7 +134,7 @@ const Canvas = () => {
     });
   };
 
-  const gridCells = Array.from({ length: numBoxes * numBoxes }, (_, index) => index + 1);
+  const gridCells = Array.from({ length: numBoxes * numBoxes }, (_, index) => index);
 
     const canvasStyle = useMemo(() => ({
     position: 'relative',
@@ -138,38 +145,37 @@ const Canvas = () => {
     alignItems: 'center'
   }), [canvasSize]);
 
-//   useEffect(() => {
-//     const savedSelections = localStorage.getItem('selections');
-//     if (savedSelections) {
-//       setSelections(JSON.parse(savedSelections).map(selection => new Set(selection)));
-//     }
-//   }, []);
-
-    const dummySelections = [
-        {
-            selectedCells: [4073,4203,4333,4074,4204,4334,4075,4205,4335,4076,4206,4336,4077,4207,4337,4463,4593,4723,4464,4594,4724,4465,4595,4725,4466,4596,4726,4467,4597,4727,4078,4208,4338,4468,4598,4728,4079,4209,4339,4469,4599,4729,4080,4210,4340,4470,4600,4730,4081,4211,4341,4471,4601,4731],
-            bgColor: "#8c2d2d",
-            coordinates: [[38,12],[40,12],[38,15],[40,15]]
-        },
-    ];
-
-    // This function plays an api
-  const initializeSelectionsWithDummyData = () => {
-    // Map the dummy data to selection sets
-    const newSelections = dummySelections.map(sel => new Set(sel.selectedCells));
-    const newSelectionColors = dummySelections.map(sel => sel.bgColor);
-    setSelections(newSelections);
-    setSelectionColors(newSelectionColors);
-
-    // If you need to use the coordinates as well, you can set them here
-    // For example, if you want to store the coordinates of the first selection:
-    // setCoordinates(dummySelections[0].coordinates);
+  
+  const fetchSelections = async () => {
+    try {
+      const response = await axios.get('https://100085.pythonanywhere.com/api/v1/bett_event/65a8162fc5b56cc2cab6d3b0/');
+      const apiData = response.data.response[0];
+      const newSelections = [];
+      for (let x = 1; x <= numBoxes; x++) {
+        const columnData = apiData[`c${x}`];
+        if (columnData) {
+          for (const cellData of columnData) {
+            const y = parseInt(cellData.row_number.slice(1)); // remove the 'r' prefix and convert to number
+            
+            // Adjust the index calculation for the inverted Y-axis
+            const cellIndex = (numBoxes - y - 1) * numBoxes + x; // convert x, y coordinates to cell index
+            console.log("cellIndex", cellIndex);
+            newSelections.push(new Set([cellIndex]));
+          }
+        }
+      }
+      console.log("NewSelections", newSelections);
+      setSelections(newSelections);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   useEffect(() => {
-    // Initialize selections when the component mounts
-    initializeSelectionsWithDummyData();
-  }, []); // Empty dependency array to run only once on mount
+    fetchSelections()
+  }, []);
+
+
 
 
   return (
@@ -177,17 +183,25 @@ const Canvas = () => {
     <>
 
         <div style={{ 
+          margin: '3px',
           display: 'flex', 
           flexDirection: 'row', 
           gap: 10, zIndex: 10,
           position: 'fixed',
         }}>
 
-        <button
+        <Button 
+          variant='warning'
           onClick={() => setSelections([])} // Clears all selections// Adjust the position as needed
         >
           Clear All Selections
-        </button>
+        </Button>
+        <Button
+          variant='success'
+          onClick={fetchSelections} // Clears all selections// Adjust the position as needed
+        >
+          Refresh
+        </Button>
       </div>
 
         <div style={canvasStyle}>
@@ -246,6 +260,7 @@ const Canvas = () => {
             showModal={showModal} 
             handleClose={() => setShowModal(false)} 
             coordinates={coordinates} 
+            cellCoords={selectedCellCoordinates}
             selectedCells={cellsSelected}
             clearSelectionByCells={clearSelectionByCells}
             selectionColors={selectionColors}

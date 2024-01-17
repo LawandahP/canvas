@@ -7,9 +7,10 @@ import { useState } from 'react';
 
 
 export const ModalComponent = ({
-   showModal, handleClose, coordinates, selectedCells,
+   showModal, handleClose, selectedCells,
    clearSelectionByCells, selectionColors,
-  currentSelection, setSelectionColors }) => {
+  currentSelection, setSelectionColors,
+   coordinates, cellCoords }) => {
 
   const handleClearSelection = () => {
     clearSelectionByCells(selectedCells);
@@ -17,33 +18,56 @@ export const ModalComponent = ({
   };
 
   const [ standNumber, setStandNumber ] = useState('')
-  const [ boxId, setBoxId ] = useState('')
+  const [selectionOption, setSelectionOption] = useState('stand');
+  const [ loading, setLoading] = useState(false)
+
+  // const [ boxId, setBoxId ] = useState('')
+  
+
+  const handleOptionChange = (e) => {
+    setSelectionOption(e.target.value);
+    const colorMap = {
+      stand: '#008000', // green
+      passage: '#FFFF00', // yellow
+      inactive: '#FF0000', // red
+    };
+    const newColors = [...selectionColors];
+    newColors[currentSelection] = colorMap[e.target.value];
+    setSelectionColors(newColors);
+  };
+
 
   const handleSubmit = async () => {
-    const data = {
-      color_code: selectionColors[currentSelection],
-      colm_number: `c${coordinates[0][0]}`,
-      row_number: `r${coordinates[0][1]}`,
-      box_id: boxId,
-      stand_number: standNumber
-      // selectedCells,
-      // coordinates,
-    };
-
-    console.log(data)
-
-    const response = await fetch('https://100085.pythonanywhere.com/api/v1/bett_event/65a7c19dc5b56cc2cab6c986/', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      // Handle error
-      console.error('Failed to submit data', response);
+    console.log("selectionPoints", coordinates)
+    setLoading(true)
+    
+    for (const { x, y } of cellCoords) {
+      const data = {
+        color_code: selectionColors[currentSelection],
+        colm_number: `c${x}`,
+        row_number: `r${y}`,
+        stand_number: standNumber,
+        type_of_place: selectionOption,
+        box_id: `c${x}r${y}`
+      };
+    
+      console.log(data);
+  
+      const response = await fetch('https://100085.pythonanywhere.com/api/v1/bett_event/65a8162fc5b56cc2cab6d3b0/', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+  
+      if (!response.ok) {
+        console.error('Failed to submit data for coordinates', x, y, response);
+        // Optionally break the loop if you want to stop sending requests after the first failure
+        break;
+      }
     }
+    setLoading(false)
   };
 
   return (
@@ -53,70 +77,60 @@ export const ModalComponent = ({
       </Modal.Header>
       <Modal.Body>
         <Form>
-          <Form.Group className="mb-3" controlId="formStandNumber">
+          {/* <Form.Group className="mb-3" controlId="formStandNumber">
             <Form.Label>Box Id</Form.Label>
             <Form.Control 
               type="text" 
               value={boxId}
               onChange={(e) => setBoxId(e.target.value)} 
             />
-          </Form.Group>
+          </Form.Group> */}
 
           <Form.Group className="mb-3" controlId="formStandNumber">
             <Form.Label>Stand Number</Form.Label>
             <Form.Control type="text" placeholder="Enter stand number" value={standNumber} onChange={(e) => setStandNumber(e.target.value)} />
           </Form.Group>
 
-          <Form.Group  controlId="formStandNumber">
-            <Form.Label>Row Number</Form.Label>
-            <Form.Control 
-              type="text" 
-              readOnly
-              value={coordinates[0] ? `r${coordinates[0][1]}` : ''} />
+          <Form.Group className="mb-3" controlId="formSelectionOption">
+            <Form.Label>Selection Option</Form.Label>
+            <Form.Control as="select" value={selectionOption} onChange={handleOptionChange}>
+              <option value="stand">Stand</option>
+              <option value="passage">Passage</option>
+              <option value="inactive">Inactive</option>
+            </Form.Control>
           </Form.Group>
 
-          <Form.Group  className="mb-2" controlId="formStandNumber">
-            <Form.Label>Column Number</Form.Label>
-            <Form.Control 
-              type="text" 
-              value={coordinates[0] ? `c${coordinates[0][0]}` : ''}
-              readOnly
-            />
+          <Form.Group className="mb-2" controlId="formCoordinates">
+            <Form.Label>Selection Coordinates</Form.Label>
+            <Form.Control as="textarea" readOnly value={JSON.stringify(cellCoords)} />
           </Form.Group>
-
-          
 
           {/* <Form.Group controlId="formCoordinates">
-            <Form.Label>Selection Coordinates</Form.Label>
-            <Form.Control as="textarea" readOnly value={JSON.stringify(coordinates)} />
-          </Form.Group>
-
-          <Form.Group controlId="formCoordinates">
             <Form.Label>Selected Cells</Form.Label>
             <Form.Control as="textarea" readOnly value={JSON.stringify(selectedCells)} />
           </Form.Group> */}
 
           <div style={{display: 'flex', marginTop: "5px", gap: "10px", alignItems: 'center'}}>
-            <Form.Label>Select Color</Form.Label>
               <input
                 type="color"
+                readOnly
                 value={selectionColors[currentSelection] ? selectionColors[currentSelection] : "#0e1df6" }
-                onChange={(e) => {
-                  const newColors = [...selectionColors];
-                  newColors[currentSelection] = e.target.value;
-                  setSelectionColors(newColors);
-                }}
+                // onChange={(e) => {
+                //   const newColors = [...selectionColors];
+                //   newColors[currentSelection] = e.target.value;
+                //   setSelectionColors(newColors);
+                // }}
               />
           </div>
         </Form>
           
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={handleSubmit}>
-          Submit
-        </Button>
         <Button variant="danger" onClick={handleClearSelection}>
-          Clear Selection
+          Clear
+        </Button>
+        <Button variant="success" onClick={handleSubmit}>
+          {loading ? 'submitting..' : 'submit'}
         </Button>
       </Modal.Footer>
     </Modal>
