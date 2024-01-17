@@ -151,6 +151,7 @@ const Canvas = () => {
       const response = await axios.get('https://100085.pythonanywhere.com/api/v1/bett_event/65a8162fc5b56cc2cab6d3b0/');
       const apiData = response.data.response[0];
       const newSelections = [];
+      const newSelectionColors = [];
       for (let x = 1; x <= numBoxes; x++) {
         const columnData = apiData[`c${x}`];
         if (columnData) {
@@ -161,16 +162,18 @@ const Canvas = () => {
             const cellIndex = (numBoxes - y - 1) * numBoxes + x; // convert x, y coordinates to cell index
             console.log("cellIndex", cellIndex);
             newSelections.push(new Set([cellIndex]));
+            newSelectionColors.push(cellData.color_code); // add color code to the selection colors
           }
         }
       }
       console.log("NewSelections", newSelections);
       setSelections(newSelections);
+      setSelectionColors(newSelectionColors); // set the new selection colors
     } catch (error) {
       console.error(error);
     }
   };
-
+  
   useEffect(() => {
     fetchSelections()
   }, []);
