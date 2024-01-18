@@ -22,14 +22,26 @@ export const ModalComponent = ({
   const [ loading, setLoading] = useState(false)
 
   // const [ boxId, setBoxId ] = useState('')
+
+  function hexToRGBA(hex, opacity) {
+    let r = parseInt(hex.slice(1, 3), 16),
+        g = parseInt(hex.slice(3, 5), 16),
+        b = parseInt(hex.slice(5, 7), 16);
+  
+    if (opacity) {
+      return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    } else {
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+  }
   
 
   const handleOptionChange = (e) => {
     setSelectionOption(e.target.value);
     const colorMap = {
-      stand: '#008000', // green
-      passage: '#FFFF00', // yellow
-      inactive: '#FF0000', // red
+      stand: hexToRGBA('#00FFFF', 0.5), // cyan with 50% opacity
+      passage: hexToRGBA('#9e9e9e', 0.5), // grey with 50% opacity
+      inactive: hexToRGBA('#ffffff', 0.5), // white with 50% opacity
     };
     const newColors = [...selectionColors];
     newColors[currentSelection] = colorMap[e.target.value];
@@ -48,12 +60,12 @@ export const ModalComponent = ({
         row_number: `r${y}`,
         stand_number: standNumber,
         type_of_place: selectionOption,
-        box_id: `c${x}r${y}`
+        box_id: `C${x + 1000}R${y + 1000}`
       };
     
       console.log(data);
   
-      const response = await fetch('https://100085.pythonanywhere.com/api/v1/bett_event/65a8162fc5b56cc2cab6d3b0/', {
+      const response = await fetch('https://100085.pythonanywhere.com/api/v1/bett_event/65a9113fc5b56cc2cab78267/', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -81,8 +93,7 @@ export const ModalComponent = ({
             <Form.Label>Box Id</Form.Label>
             <Form.Control 
               type="text" 
-              value={boxId}
-              onChange={(e) => setBoxId(e.target.value)} 
+              value={boxId} 
             />
           </Form.Group> */}
 
@@ -109,19 +120,6 @@ export const ModalComponent = ({
             <Form.Label>Selected Cells</Form.Label>
             <Form.Control as="textarea" readOnly value={JSON.stringify(selectedCells)} />
           </Form.Group> */}
-
-          <div style={{display: 'flex', marginTop: "5px", gap: "10px", alignItems: 'center'}}>
-              <input
-                type="color"
-                readOnly
-                value={selectionColors[currentSelection] ? selectionColors[currentSelection] : "#0e1df6" }
-                // onChange={(e) => {
-                //   const newColors = [...selectionColors];
-                //   newColors[currentSelection] = e.target.value;
-                //   setSelectionColors(newColors);
-                // }}
-              />
-          </div>
         </Form>
           
       </Modal.Body>
