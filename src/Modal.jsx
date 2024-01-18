@@ -18,7 +18,7 @@ export const ModalComponent = ({
   };
 
   const [ standNumber, setStandNumber ] = useState('')
-  const [selectionOption, setSelectionOption] = useState('stand');
+  const [selectionOption, setSelectionOption] = useState('');
   const [ loading, setLoading] = useState(false)
 
   // const [ boxId, setBoxId ] = useState('')
@@ -97,10 +97,7 @@ export const ModalComponent = ({
             />
           </Form.Group> */}
 
-          <Form.Group className="mb-3" controlId="formStandNumber">
-            <Form.Label>Stand Number</Form.Label>
-            <Form.Control type="text" placeholder="Enter stand number" value={standNumber} onChange={(e) => setStandNumber(e.target.value)} />
-          </Form.Group>
+          
 
           <Form.Group className="mb-3" controlId="formSelectionOption">
             <Form.Label>Selection Option</Form.Label>
@@ -111,10 +108,17 @@ export const ModalComponent = ({
             </Form.Control>
           </Form.Group>
 
-          <Form.Group className="mb-2" controlId="formCoordinates">
+          { selectionOption === "stand" && 
+            <Form.Group className="mb-3" controlId="formStandNumber">
+              <Form.Label>Stand Number</Form.Label>
+              <Form.Control type="text" placeholder="Enter stand number" value={standNumber} onChange={(e) => setStandNumber(e.target.value)} />
+            </Form.Group>
+          }
+
+          {/* <Form.Group className="mb-2" controlId="formCoordinates">
             <Form.Label>Selection Coordinates</Form.Label>
             <Form.Control as="textarea" readOnly value={JSON.stringify(cellCoords)} />
-          </Form.Group>
+          </Form.Group> */}
 
           {/* <Form.Group controlId="formCoordinates">
             <Form.Label>Selected Cells</Form.Label>

@@ -227,8 +227,8 @@ const Canvas = () => {
                     display: 'grid',
                     gridTemplateColumns: `repeat(${numBoxes}, ${boxSize}cm)`,
                     gridTemplateRows: `repeat(${numBoxes}, ${boxSize}cm)`,
-                    width: `calc(${canvasSize}cm - 1.9cm)`, // Subtract 2cm (1cm for each side) from the width
-                    height: `calc(${canvasSize}cm - 1.9cm)`, // Subtract 2cm (1cm for each side) from the height
+                    width: `calc(${canvasSize}cm - 1.9cm)`, 
+                    height: `calc(${canvasSize}cm - 1.9cm)`, //
                    // border: '1px solid black',
                     userSelect: 'none', // Prevent text selection
                     // margin: '1cm', // Add 1cm space around the grid
@@ -266,12 +266,12 @@ const Canvas = () => {
                         position: 'absolute',
                         top: '50%',
                         left: '50%',
-                        width: `calc(${canvasSize}cm - 1.9cm - ${boxSize}cm)`, // Subtract the border width (5px on each side)
-                        height: `calc(${canvasSize}cm - 1.9cm - ${boxSize}cm)`, // Subtract the border width (5px on each side)
-                        boxSizing: 'border-box', // Include padding and border in the element's width and height
+                        width: `calc(${canvasSize}cm - 1.9cm - ${boxSize}cm)`,
+                        height: `calc(${canvasSize}cm - 1.9cm - ${boxSize}cm)`,
+                        // boxSizing: 'border-box', // Include padding and border in the element's width and height
                         transform: 'translate(-50%, -50%)', // Center the div
                         zIndex: -1,
-                        border: '5px solid #f00000'
+                        border: '1px solid #f00000'
                     }}
                 >
                     <img
@@ -281,11 +281,10 @@ const Canvas = () => {
                             width: '100%',
                             height: '100%',
                             objectFit: 'cover',
-                            zIndex: -1,
+                            // zIndex: -1,
                         }}
                     />
                 </div>
-                                
             </div>
         </div>
 
