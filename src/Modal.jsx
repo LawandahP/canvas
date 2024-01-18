@@ -102,6 +102,7 @@ export const ModalComponent = ({
           <Form.Group className="mb-3" controlId="formSelectionOption">
             <Form.Label>Selection Option</Form.Label>
             <Form.Control as="select" value={selectionOption} onChange={handleOptionChange}>
+              <option value="">Select Selection Type</option>
               <option value="stand">Stand</option>
               <option value="passage">Passage</option>
               <option value="inactive">Inactive</option>
