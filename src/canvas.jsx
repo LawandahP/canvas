@@ -266,26 +266,26 @@ const Canvas = () => {
                         position: 'absolute',
                         top: '50%',
                         left: '50%',
-                        width: `calc(${canvasSize}cm - 1.9cm - ${boxSize}cm - 10x)`, // Subtract the border width (5px on each side)
-                        height: `calc(${canvasSize}cm - 1.9cm - ${boxSize}cm - 10px)`, // Subtract the border width (5px on each side)
+                        width: `calc(${canvasSize}cm - 1.9cm - ${boxSize}cm)`, // Subtract the border width (5px on each side)
+                        height: `calc(${canvasSize}cm - 1.9cm - ${boxSize}cm)`, // Subtract the border width (5px on each side)
                         boxSizing: 'border-box', // Include padding and border in the element's width and height
                         transform: 'translate(-50%, -50%)', // Center the div
                         zIndex: -1,
-                        // border: '1px solid #f00000'
+                        border: '5px solid #f00000'
                     }}
                 >
                     <img
                         src={map}
                         alt="Background"
-                        // style={{
-                        //     width: '100%',
-                        //     height: '100%',
-                        //     objectFit: 'cover',
-                        //     zIndex: -1,
-                        // }}
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            zIndex: -1,
+                        }}
                     />
                 </div>
-                
+                                
             </div>
         </div>
 
