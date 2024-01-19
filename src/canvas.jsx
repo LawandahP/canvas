@@ -45,26 +45,50 @@ const Canvas = () => {
   };
   
 
+  // const handleMouseEnter = (cellIndex) => {
+  //   if (isDragging && currentSelection !== null) {
+  //     setEndCell(cellIndex);
+  //     setSelections(prevSelections => {
+  //       const newSelections = [...prevSelections];
+  //       const currentSel = new Set(newSelections[currentSelection]);
+  //       const startCoords = getCellCoords(startCell);
+  //       const endCoords = getCellCoords(cellIndex);
+  //       const minX = Math.min(startCoords.x, endCoords.x);
+  //       const maxX = Math.max(startCoords.x, endCoords.x);
+  //       // Adjust for the inverted y-axis due to the origin being at the bottom left
+  //       const minY = Math.min(startCoords.y, endCoords.y);
+  //       const maxY = Math.max(startCoords.y, endCoords.y);
+  //       for (let x = minX; x <= maxX; x++) {
+  //         for (let y = minY; y <= maxY; y++) {
+  //           // Adjust the index calculation for the inverted Y-axis
+  //           currentSel.add((numBoxes - y - 1) * numBoxes + x);
+  //         }
+  //       }
+  //       newSelections[currentSelection] = currentSel;
+  //       return newSelections;
+  //     });
+  //   }
+  // };
+
   const handleMouseEnter = (cellIndex) => {
     if (isDragging && currentSelection !== null) {
       setEndCell(cellIndex);
       setSelections(prevSelections => {
         const newSelections = [...prevSelections];
-        const currentSel = new Set(newSelections[currentSelection]);
+        const newSelection = new Set();
         const startCoords = getCellCoords(startCell);
         const endCoords = getCellCoords(cellIndex);
         const minX = Math.min(startCoords.x, endCoords.x);
         const maxX = Math.max(startCoords.x, endCoords.x);
-        // Adjust for the inverted y-axis due to the origin being at the bottom left
         const minY = Math.min(startCoords.y, endCoords.y);
         const maxY = Math.max(startCoords.y, endCoords.y);
         for (let x = minX; x <= maxX; x++) {
           for (let y = minY; y <= maxY; y++) {
-            // Adjust the index calculation for the inverted Y-axis
-            currentSel.add((numBoxes - y - 1) * numBoxes + x);
+            const index = (numBoxes - y - 1) * numBoxes + x;
+            newSelection.add(index);
           }
         }
-        newSelections[currentSelection] = currentSel;
+        newSelections[currentSelection] = newSelection;
         return newSelections;
       });
     }
