@@ -20,6 +20,8 @@ const Canvas = () => {
   const [showModal, setShowModal] = useState(false);
   const [coordinates, setCoordinates] = useState([]);
   const [selectionColors, setSelectionColors] = useState([]);
+
+  const [ isLoading, setIsLoading ] = useState(false)
   
   const getCellCoords = (index) => ({
     x: index % numBoxes,
@@ -131,6 +133,7 @@ const Canvas = () => {
 
   
   const fetchSelections = async () => {
+    setIsLoading(true)
     try {
       const response = await axios.get('https://100085.pythonanywhere.com/api/v1/bett_event/65a9113fc5b56cc2cab78267/');
       const apiData = response.data.response[0];
@@ -163,7 +166,9 @@ const Canvas = () => {
   
       setSelections(newSelections);
       setSelectionColors(newSelectionColors);
+      setIsLoading(false)
     } catch (error) {
+      setIsLoading(false)
       console.error(error);
     }
   };
@@ -191,20 +196,22 @@ const Canvas = () => {
           display: 'flex', 
           flexDirection: 'row', 
           gap: 10, zIndex: 10,
+          left: '0.95cm',
           position: 'fixed',
         }}>
 
         <Button 
+          size='sm'
           variant='warning'
-          onClick={() => setSelections([])} // Clears all selections// Adjust the position as needed
+          onClick={() => setSelections([])}
         >
           Clear All Selections
         </Button>
         <Button
+          size='sm'
           variant='success'
-          onClick={fetchSelections} // Clears all selections// Adjust the position as needed
-        >
-          Refresh
+          onClick={fetchSelections}>
+          {isLoading ? 'Refreshing...' : 'Refresh'}
         </Button>
       </div>
 
@@ -240,26 +247,28 @@ const Canvas = () => {
                 onMouseLeave={() => isDragging && setIsDragging(false)}
                 >
                 {gridCells.map((cellIndex) => {
-                    const selectionIndex = selections.findIndex(selection => selection.has(cellIndex));
-                    const isSelected = selectionIndex !== -1;
-                    const color = isSelected ? selectionColors[selectionIndex] : 'transparent';
-                    return (
-                        <div
-                        key={cellIndex}
-                        className={`box ${isSelected ? 'selected' : ''}`}
-                        style={{
-                            border: '1px solid #ddd',
-                            boxSizing: 'border-box',
-                            cursor: 'pointer',
-                            backgroundColor: color
-                        }}
-                        onMouseDown={() => handleMouseDown(cellIndex)}
-                        onMouseEnter={() => handleMouseEnter(cellIndex)}
-                        onMouseUp={handleMouseUp}
-                        onClick={() => handleCellClick(cellIndex)}
-                        onContextMenu={(event) => handleCellClick(event, cellIndex)}
-                        />
-                    );
+                  const selectionIndex = selections.findIndex(selection => selection.has(cellIndex));
+                  const isSelected = selectionIndex !== -1;
+                  const color = isSelected ? selectionColors[selectionIndex] : 'transparent';
+                  const { x, y } = getCellCoords(cellIndex); // Get the coordinates for the tooltip
+                  return (
+                    <div
+                      key={cellIndex}
+                      className={`box ${isSelected ? 'selected' : ''}`}
+                      style={{
+                        border: '1px solid #ddd',
+                        boxSizing: 'border-box',
+                        cursor: 'pointer',
+                        backgroundColor: color
+                      }}
+                      title={`Row: ${y}, Col: ${x}`} // Set the title attribute for the tooltip
+                      onMouseDown={() => handleMouseDown(cellIndex)}
+                      onMouseEnter={() => handleMouseEnter(cellIndex)}
+                      onMouseUp={handleMouseUp}
+                      onClick={() => handleCellClick(cellIndex)}
+                      onContextMenu={(event) => handleCellClick(event, cellIndex)}
+                    />
+                  );
                 })}
                 <div
                     style={{
